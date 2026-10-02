@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atividade de Biologia - 3º Bimestre</title>
+<style>
+body{font-family:Arial,sans-serif;background:#eef2ee;margin:0;color:#1b1b1b}
+main{max-width:820px;margin:auto;padding:16px}
+header{text-align:center;background:#145A32;color:#fff;padding:14px;border-radius:10px}
+header h1{margin:0;font-size:1.15rem}header p{margin:4px 0 0;font-size:.9rem}
+.card{background:#fff;border-radius:10px;padding:16px;margin:14px 0;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.campos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.campos .larg{grid-column:span 2}
+@media(max-width:600px){.campos{grid-template-columns:1fr}.campos .larg{grid-column:auto}}
+label{font-weight:bold;font-size:.85rem;display:block;margin-bottom:4px}
+select,input,textarea{width:100%;box-sizing:border-box;padding:8px;font-size:1rem;border:1px solid #999;border-radius:6px}
+textarea{min-height:130px;font-family:inherit}
+.q h3{margin:0 0 8px;color:#145A32;font-size:1rem}
+.cmd{font-weight:bold}
+.img{background:#f7faf7;border:1px solid #cfdccf;border-radius:8px;padding:6px;margin:10px 0;text-align:center}
+.img svg{max-width:100%;height:auto;max-height:240px}
+.alternativa{display:block;padding:10px 12px;margin:8px 0;border-radius:8px;background:#f4f4f4;cursor:pointer;user-select:none;
+box-shadow:4px 4px 8px rgba(0,0,0,.3),-2px -2px 6px rgba(255,255,255,.6);transition:all .15s ease-in-out}
+.alternativa.selecionada{box-shadow:inset 3px 3px 6px rgba(0,0,0,.4);transform:translateY(2px);background:#145A32;color:#fff;font-weight:bold}
+
+.fl{display:flex;align-items:stretch;justify-content:center;gap:6px;margin:8px 0}
+.bx{flex:1;min-width:0;background:#e8f5e9;border:1px solid #2e7d32;border-radius:8px;padding:8px;font-size:.85rem;line-height:1.3;text-align:center;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere}
+.ar{align-self:center;font-size:1.2rem;color:#333}
+button{background:#145A32;color:#fff;border:0;padding:12px 24px;font-size:1rem;border-radius:8px;cursor:pointer}
+button:disabled{opacity:.5}#msg{font-weight:bold;margin-top:10px}
+</style></head><body><main>
+<header><h1>E.E. PROFª WANDA MASCAGNI DE SÁ</h1><p>Biologia - 2ª Série EM - Atividade do 3º Bimestre</p></header>
+<div class="card campos">
+<div><label>Turma</label><select id="turma"><option value="">Selecione</option></select></div>
+<div class="larg"><label>NOME</label><select id="nome" disabled><option value="">Selecione a turma primeiro</option></select></div>
+<div><label>Nº de chamada</label><input id="num" readonly></div>
+<div><label>RA</label><input id="ra" readonly></div>
+<div><label>Data</label><input id="data" readonly></div>
+<div class="larg"><label>E-mail institucional</label><input id="email" readonly></div></div>
+<div id="qs"></div>
+<div class="card"><button id="enviar">Enviar respostas</button><div id="msg"></div></div>
+</main>
+<script>
+// ===== CONFIGURAÇÃO =====
+const URL_APPS_SCRIPT='COLE_AQUI_A_URL_DO_WEB_APP';
+// Alunos da 2ª Série C (lista importada de 2ªSérie_C.xlt)
+const ALUNOS={
+ '2ª Série C':[
+  {"n": "ALICIA KEMILLY SULINO REIS", "num": 11, "ra": "110496463-6", "email": "00001104964636SP@al.educacao.sp.gov.br"},
+  {"n": "ANA BEATRIZ OLIVEIRA ALVES", "num": 22, "ra": "115107050-6", "email": "00001151070506SP@al.educacao.sp.gov.br"},
+  {"n": "ANA CLARA FERNANDES DA SILVA", "num": 1, "ra": "112733688-5", "email": "00001127336885SP@al.educacao.sp.gov.br"},
+  {"n": "ANDRÉ RICARDO BUENO EMILIO FILHO", "num": 27, "ra": "114145951-6", "email": "00001141459516SP@al.educacao.sp.gov.br"},
+  {"n": "ARTHUR RIBEIRO SOARES LUZ", "num": 23, "ra": "115556623-3", "email": "00001155566233SP@al.educacao.sp.gov.br"},
+  {"n": "ASHELEY DE PAULA PEREIRA GARCIA", "num": 34, "ra": "112216890-1", "email": "00001122168901SP@al.educacao.sp.gov.br"},
+  {"n": "BARBARA VITÓRIA SANTOS SOUZA", "num": 2, "ra": "112229643-5", "email": "00001122296435SP@al.educacao.sp.gov.br"},
+  {"n": "CARLOS EDUARDO DE FREITAS PINHEIRO LOPES", "num": 41, "ra": "113358030-0", "email": "00001133580300SP@al.educacao.sp.gov.br"},
+  {"n": "DAVÍ ALMEIDA LIMA", "num": 44, "ra": "113204173-9", "email": "00001132041739SP@al.educacao.sp.gov.br"},
+  {"n": "DESIREE RODRIGUES DE AMORIM", "num": 30, "ra": "112117613-6", "email": "00001121176136SP@al.educacao.sp.gov.br"},
+  {"n": "ERIK TAVARES AUGUSTO", "num": 43, "ra": "110062207-X", "email": "0000110062207XSP@al.educacao.sp.gov.br"},
+  {"n": "GABRIEL FREITAS DE BARROS", "num": 3, "ra": "112226824-5", "email": "00001122268245SP@al.educacao.sp.gov.br"},
+  {"n": "GIOVANNA SOUZA DE ALBUQUERQUE", "num": 28, "ra": "115546312-2", "email": "00001155463122SP@al.educacao.sp.gov.br"},
+  {"n": "GUILHERME FAGUNDES DE ARAUJO", "num": 16, "ra": "111895869-X", "email": "0000111895869XSP@al.educacao.sp.gov.br"},
+  {"n": "GUILHERME XAVIER DE MACÊDO", "num": 4, "ra": "114147486-4", "email": "00001141474864SP@al.educacao.sp.gov.br"},
+  {"n": "HELIO HENRIQUE LAMBERT VIEIRA", "num": 13, "ra": "114162451-5", "email": "00001141624515SP@al.educacao.sp.gov.br"},
+  {"n": "INARA BEZERRA DA SILVA", "num": 33, "ra": "110498121-X", "email": "0000110498121XSP@al.educacao.sp.gov.br"},
+  {"n": "ISABELLA DE SOUZA BARROS", "num": 39, "ra": "114727075-2", "email": "00001147270752SP@al.educacao.sp.gov.br"},
+  {"n": "JAQUELINE LEMOS CUNHA DE AMORIM", "num": 5, "ra": "115107760-4", "email": "00001151077604SP@al.educacao.sp.gov.br"},
+  {"n": "JEFFERSON DAVID BARBOZA ELIAS", "num": 6, "ra": "113205245-2", "email": "00001132052452SP@al.educacao.sp.gov.br"},
+  {"n": "KAIQUE SORACE MOTA SILVA", "num": 7, "ra": "113153420-7", "email": "00001131534207SP@al.educacao.sp.gov.br"},
+  {"n": "LAIS MIKAELLY ROCHA SILVA", "num": 36, "ra": "114156896-2", "email": "00001141568962SP@al.educacao.sp.gov.br"},
+  {"n": "LARA BARROS DA SILVA", "num": 17, "ra": "111931694-7", "email": "00001119316947SP@al.educacao.sp.gov.br"},
+  {"n": "LUANA DA SILVA ROCHA DOS SANTOS", "num": 8, "ra": "113211690-9", "email": "00001132116909SP@al.educacao.sp.gov.br"},
+  {"n": "LUCAS PERES DE SOUZA", "num": 42, "ra": "111126924-5", "email": "00001111269245SP@al.educacao.sp.gov.br"},
+  {"n": "LUIZA AVELA ORTEGA", "num": 9, "ra": "112228678-8", "email": "00001122286788SP@al.educacao.sp.gov.br"},
+  {"n": "MARCOS VINICIUS DE SOUZA ALVES", "num": 15, "ra": "114239845-6", "email": "00001142398456SP@al.educacao.sp.gov.br"},
+  {"n": "MARIA EDUARDA CHAGAS GONÇALVES", "num": 40, "ra": "112216421-X", "email": "0000112216421XSP@al.educacao.sp.gov.br"},
+  {"n": "MARIAH EDUARDA PEDROSO MARTINS", "num": 12, "ra": "112216902-4", "email": "00001122169024SP@al.educacao.sp.gov.br"},
+  {"n": "MARIANA LOPES GRAÇA", "num": 31, "ra": "112025243-X", "email": "0000112025243XSP@al.educacao.sp.gov.br"},
+  {"n": "MATHEUS FELIPE SILVA SOUZA", "num": 19, "ra": "111717661-7", "email": "00001117176617SP@al.educacao.sp.gov.br"},
+  {"n": "MIRELA DE OLIVEIRA MARTINS", "num": 10, "ra": "112221629-4", "email": "00001122216294SP@al.educacao.sp.gov.br"},
+  {"n": "PABLO VINICIUS SILVA DE LIMA", "num": 29, "ra": "113208199-3", "email": "00001132081993SP@al.educacao.sp.gov.br"},
+  {"n": "PEDRO HENRIQUE BARRETO REGIS", "num": 25, "ra": "112212951-8", "email": "00001122129518SP@al.educacao.sp.gov.br"},
+  {"n": "PEDRO HENRIQUE CORDEIRO MACEDO", "num": 20, "ra": "116598301-1", "email": "00001165983011SP@al.educacao.sp.gov.br"},
+  {"n": "PEDRO HENRIQUE VITORINO TOMAZ DOS SANTOS", "num": 14, "ra": "113206613-X", "email": "0000113206613XSP@al.educacao.sp.gov.br"},
+  {"n": "PEDRO PAULO DE SOUZA NEVES", "num": 38, "ra": "111931821-X", "email": "0000111931821XSP@al.educacao.sp.gov.br"},
+  {"n": "SAMUEL RIBEIRO SOARES LUZ", "num": 24, "ra": "115556771-7", "email": "00001155567717SP@al.educacao.sp.gov.br"},
+  {"n": "VITOR DORICE DOS SANTOS", "num": 32, "ra": "114157198-5", "email": "00001141571985SP@al.educacao.sp.gov.br"},
+  {"n": "YASMIN VITORIA SIQUEIRA FERNANDES", "num": 37, "ra": "112228037-3", "email": "00001122280373SP@al.educacao.sp.gov.br"}
+ ]
+};
+// ===== Helpers de imagem (SVG) =====
+const S=(w,h,c)=>`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" font-family="Arial" font-size="10">${c}</svg>`;
+const T=(x,y,s,a='start',e='')=>`<text x="${x}" y="${y}" text-anchor="${a}" ${e}>${s}</text>`;
+const flow=rows=>rows.map(r=>'<div class="fl">'+r.map((s,j)=>`<div class="bx">${s.replace(/\|/g,' ')}</div>`+(j<r.length-1?'<span class="ar">➜</span>':'')).join('')+'</div>').join('');
+const barras=(it,mx,u)=>{let c='';it.forEach((b,i)=>{const y=8+i*34,w=b[1]/mx*160;c+=T(5,y+16,b[0])+`<rect x="125" y="${y}" width="${w}" height="24" fill="#2e7d32"/>`+T(130+w,y+16,b[1]+u)});return S(340,it.length*34+10,c)};
+const tree=(()=>{const ln=(a)=>`<path d="${a}" stroke="#333" fill="none"/>`;let c=ln('M15 43H30')+ln('M30 20V67')+ln('M30 20H200')+ln('M30 67H70')+ln('M70 45V89')+ln('M70 45H200')+ln('M70 89H110')+ln('M110 70V108')+ln('M110 70H200')+ln('M110 108H150')+ln('M150 95V120')+ln('M150 95H200')+ln('M150 120H200');
+['Gibão','Orangotango','Gorila','Chimpanzé','Humano'].forEach((n,i)=>c+=T(206,[24,49,74,99,124][i],n,'start','font-style="italic"'));return S(300,140,c)})();
+const crani=(()=>{const sk=(cx,l)=>`<ellipse cx="${cx}" cy="45" rx="42" ry="27" fill="#f5e6c8" stroke="#555"/><circle cx="${cx-24}" cy="40" r="4" fill="#555"/>`+T(cx,14,'Crânio '+l,'middle','font-weight="bold"');
+return S(300,125,sk(70,'X')+`<path d="M104 60L128 112" stroke="#555" stroke-width="6"/><circle cx="104" cy="60" r="4.5" fill="#c62828"/>`+sk(210,'Y')+`<path d="M210 72V114" stroke="#555" stroke-width="6"/><circle cx="210" cy="72" r="4.5" fill="#c62828"/>`+T(150,122,'● ponto de articulação da coluna com o crânio','middle','fill="#c62828"'))})();
+const linha=(()=>{const v=[.77,.74,.72,.70,.65];let p='',c='<path d="M45 20V130H300" stroke="#333" fill="none"/>';v.forEach((y,i)=>{const X=50+i*60,Y=130-(y-.6)/.2*100;p+=(i?'L':'M')+X+' '+Y;c+=`<circle cx="${X}" cy="${Y}" r="3.5" fill="#2e7d32"/>`+T(X,145,i*5,'middle')});
+return S(320,175,c+`<path d="${p}" stroke="#2e7d32" fill="none" stroke-width="2"/>`+T(170,166,'Distância da África (milhares de km)','middle')+T(8,16,'Diversidade genética (índice)')+T(40,34,'0,80','end')+T(40,133,'0,60','end'))})();
+const tempo=(()=>{const X=t=>40+(2000-t)/2000*260;let c='';[['Homo erectus',1900,110],['H. neanderthalensis',400,40],['Homo sapiens',300,0]].forEach((b,i)=>{const y=18+i*34;c+=`<rect x="${X(b[1])}" y="${y}" width="${X(b[2])-X(b[1])}" height="14" fill="#2e7d32"/>`+(X(b[1])>180?T(X(b[2]),y-3,b[0],'end'):T(X(b[1]),y-3,b[0]))});
+c+='<path d="M40 112H300" stroke="#333"/>';[2000,1000,0].forEach(t=>c+=T(X(t),126,t,'middle'));return S(320,145,c+T(170,140,'Tempo (mil anos atrás)','middle'))})();
+// ===== QUESTÕES =====
+const Q=[
+{t:'o',g:'Grupo 1',x:'Pesquisadores compararam o DNA de primatas e construíram o cladograma abaixo.',c:'Qual afirmação sobre a relação entre humanos e os demais primatas está correta?',i:tree,a:[
+'Os humanos descendem do chimpanzé atual, pois são os parentes mais próximos.','O gorila é o parente vivo mais próximo dos humanos por ser parecido em tamanho.','Humanos e chimpanzés compartilham um ancestral comum mais recente do que o compartilhado com o gorila.','Gibões e humanos formam um grupo à parte, separado de chimpanzés e gorilas.','Os orangotangos são ancestrais diretos de gorilas, chimpanzés e humanos.']},
+{t:'o',g:'Grupo 1',x:'Os crânios X e Y mostram onde a coluna vertebral se articula com a cabeça, característica usada para inferir a locomoção de fósseis.',c:'Qual alternativa interpreta corretamente a figura?',i:crani,a:[
+'X indica bipedalismo habitual, pois a cabeça projetada à frente facilita a corrida.','Y indica provável bipedalismo habitual, pois a coluna sob o crânio equilibra a cabeça sobre um tronco ereto.','Y indica quadrupedalismo, pois a coluna sob o crânio é típica de quem anda sobre quatro apoios.','X e Y indicam a mesma locomoção, pois a posição da coluna só varia com o tamanho do cérebro.','Nenhum deles permite inferir locomoção; só os dentes fornecem essa informação.']},
+{t:'o',g:'Grupo 2',x:'O esquema mostra como bactérias passaram a produzir insulina humana. Na etapa 2, o gene humano é unido ao plasmídeo cortado.',c:'Qual molécula atua na etapa 2 e qual é sua função?',i:flow([['1. Gene da insulina|e plasmídeo cortados|pela mesma enzima','2. Fragmentos são|unidos, formando|plasmídeo recombinante','3. Plasmídeo entra|na bactéria, que|produz insulina']]),a:[
+'Enzima de restrição, que corta o DNA em sítios específicos para uni-lo.','RNA polimerase, que copia o gene em RNA durante a união.','DNA polimerase, que cria um gene novo a partir de nucleotídeos livres.','DNA ligase, que une as extremidades do gene e do plasmídeo por ligações covalentes.','Transcriptase reversa, que converte RNA em DNA para inserir o gene.']},
+{t:'o',g:'Grupo 2',x:'O gráfico mostra o volume craniano médio aproximado de quatro grupos de hominínios, em ordem de aparecimento no registro fóssil.',c:'Qual conclusão é sustentada pelos dados?',i:barras([['A. afarensis',450],['H. habilis',600],['H. erectus',950],['H. sapiens',1350]],1400,' cm³'),a:[
+'Houve tendência de aumento do volume craniano ao longo do tempo, mas o gráfico não prova que cada espécie descende diretamente da anterior.','O aumento do cérebro foi a causa do surgimento do bipedalismo.','Cada espécie evoluiu da anterior em linha reta, rumo ao H. sapiens.','Maior volume craniano significa maior inteligência individual em qualquer espécie.','A. afarensis foi extinto porque seu cérebro era pequeno.']},
+{t:'o',g:'Grupo 2',x:'Uma lavoura de milho Bt recebeu o gene cry da bactéria Bacillus thuringiensis. Lagartas que comem as folhas morrem.',c:'Qual princípio biológico explica que o milho passe a produzir a proteína bacteriana?',i:flow([['Gene cry da|bactéria é isolado','Gene é inserido|no genoma|do milho','Milho produz a|proteína Cry; a|lagarta morre']]),a:[
+'As plantas absorvem proteínas da bactéria presente no solo.','O gene bacteriano transformou o milho em um inseto.','A proteína foi transferida pronta, sem participação de DNA ou RNA.','Uma mutação espontânea gerou a proteína após contato com a bactéria.','O código genético é praticamente universal: o gene inserido é transcrito e traduzido pelas células do milho.']},
+{t:'o',g:'Grupo 3',x:'A tecnologia CRISPR permite editar genes. O esquema compara duas rotas de aplicação.',c:'Por que a rota 2 gera debate ético mais intenso que a rota 1?',i:flow([['Rota 1: edição em|células do sangue|de um adulto','Células editadas|voltam ao paciente','Efeito no próprio|paciente'],['Rota 2: edição em|embrião de poucas|células','Todas as células,|inclusive gametas,|são editadas','Indivíduo editado|cresce e se|reproduz']]),a:[
+'Porque usa enzimas diferentes e mais caras.','Porque altera células germinativas ou embrião, e a mudança pode passar a descendentes que não puderam consentir.','Porque a rota 1 não altera o DNA, apenas a expressão dos genes.','Porque a rota 2 sempre causa câncer.','Porque na rota 1 o efeito é transmitido aos filhos e na rota 2 não.']},
+{t:'o',g:'Grupo 3',x:'O gráfico (dados ilustrativos) mostra a diversidade genética de populações humanas atuais conforme a distância do leste da África.',c:'Qual hipótese explica melhor o padrão observado?',i:linha,a:[
+'Populações distantes sofreram mais mutações por causa de climas severos.','Populações africanas são mais "antigas" e, por isso, menos evoluídas.','A dispersão ocorreu por sucessivos grupos pequenos, cada um levando só parte da variabilidade do grupo de origem (efeito do fundador).','A seleção natural eliminou alelos a cada migração.','A hibridação fora da África aumentou a diversidade de forma progressiva.']},
+{t:'d',g:'Grupo 2',x:'Analise a linha do tempo e explique por que ela contradiz a ideia de que a evolução humana foi uma "escada", em que uma espécie substitui outra em sequência. Cite o que o gráfico mostra sobre H. sapiens e neandertais.',i:tempo},
+{t:'d',g:'Grupo 3',x:'O esquema mostra uma terapia gênica para anemia falciforme. Explique o que ocorre em cada etapa, por que essa edição é considerada somática e apresente um desafio ético ou social dessa tecnologia.',i:flow([['Células-tronco do|sangue do paciente|são coletadas','CRISPR corrige a|mutação no gene|da hemoglobina','Células corrigidas|são reinfundidas|no paciente']])},
+{t:'d',g:'Grupo 3',x:'Um teste de ancestralidade gerou o relatório ao lado (dados fictícios). Explique por que ele não comprova a existência de "raças" biológicas humanas e aponte um risco à privacidade genética.',i:barras([['Africana subsaariana',40],['Europeia',35],['Indígena americana',25]],50,' %')}
+];
+// ===== Renderização =====
+const L='ABCDE';
+document.getElementById('qs').innerHTML=Q.map((q,n)=>`<div class="card q"><h3>Questão ${n+1}</h3><p>${q.x}</p>${q.c?`<p class="cmd">${q.c}</p>`:''}<div class="img">${q.i}</div>`+
+(q.t=='o'?q.a.map((a,k)=>`<div class="alternativa" data-q="${n}" data-l="${L[k]}"><b>${L[k]})</b> ${a}</div>`).join(''):`<textarea id="d${n}" placeholder="Escreva sua resposta aqui"></textarea>`)+'</div>').join('');
+const R={};
+document.querySelectorAll('.alternativa').forEach(e=>e.onclick=()=>{document.querySelectorAll(`.alternativa[data-q="${e.dataset.q}"]`).forEach(x=>x.classList.remove('selecionada'));e.classList.add('selecionada');R[e.dataset.q]=e.dataset.l});
+// Cascata Turma > Nome > RA
+const tS=document.getElementById('turma'),nS=document.getElementById('nome'),ra=document.getElementById('ra'),num=document.getElementById('num'),em=document.getElementById('email'),dt=document.getElementById('data');
+dt.value=new Date().toLocaleDateString('pt-BR');
+Object.keys(ALUNOS).forEach(t=>tS.add(new Option(t,t)));
+tS.onchange=()=>{nS.length=1;ra.value=num.value=em.value='';nS.disabled=!tS.value;nS.options[0].text=tS.value?'Selecione seu nome':'Selecione a turma primeiro';(ALUNOS[tS.value]||[]).forEach(a=>nS.add(new Option(a.n,a.n)))};
+nS.onchange=()=>{const a=(ALUNOS[tS.value]||[]).find(x=>x.n==nS.value);ra.value=a?a.ra:'';num.value=a?a.num:'';em.value=a?a.email:''};
+// Envio
+document.getElementById('enviar').onclick=async function(){
+ const m=document.getElementById('msg');
+ if(!tS.value||!nS.value)return m.textContent='Selecione turma e nome.';
+ const resp={};Q.forEach((q,n)=>resp['q'+(n+1)]=q.t=='o'?(R[n]||''):document.getElementById('d'+n).value.trim());
+ const vazias=Object.values(resp).filter(v=>!v).length;
+ if(vazias&&!confirm(`Há ${vazias} questão(ões) sem resposta. Enviar assim mesmo?`))return;
+ this.disabled=true;m.textContent='Enviando e corrigindo... aguarde, pode levar alguns segundos.';
+ try{const r=await fetch(URL_APPS_SCRIPT,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({turma:tS.value,nome:nS.value,ra:ra.value,num:num.value,email:em.value,data:dt.value,respostas:resp})});
+  if(!r.ok)throw 0;m.textContent='✅ Respostas enviadas com sucesso!';}
+ catch(e){m.textContent='❌ Não foi possível enviar. Verifique a conexão e tente novamente.';this.disabled=false}
+};
+</script></body></html>
